@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 24.13.0
+          node-version: 24
 
       - name: Install Deps
         run: npm i -D @semantic-release/changelog @semantic-release/git conventional-changelog-conventionalcommits semantic-release
