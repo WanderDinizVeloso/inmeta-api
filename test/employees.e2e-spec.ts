@@ -94,7 +94,6 @@ describe('EmployeesController (e2e)', () => {
 
   describe('/employees (GET)', () => {
     it('deve listar colaboradores com paginação padrão (page=1, limit=10)', async () => {
-      // Setup: Insere 2 colaboradores
       await request(app.getHttpServer())
         .post('/employees')
         .send({ name: 'User 1', email: 'user1@test.com' });

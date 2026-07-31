@@ -6,6 +6,18 @@ import { Employee } from '../../domain/employee.entity';
 export class EmployeeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findById({ id }: { id: string }): Promise<Employee | null> {
+    const data = await this.prisma.employee.findUnique({
+      where: { id },
+    });
+
+    if (!data || data.deletedAt !== null) {
+      return null;
+    }
+
+    return Employee.create(data);
+  }
+
   async findByEmail({ email }: { email: string }): Promise<Employee | null> {
     const data = await this.prisma.employee.findUnique({
       where: { email },
@@ -54,5 +66,18 @@ export class EmployeeRepository {
       items: data.map((row) => Employee.create(row)),
       total,
     };
+  }
+
+  async softDelete({
+    id,
+    deletedAt,
+  }: {
+    id: string;
+    deletedAt: Date;
+  }): Promise<void> {
+    await this.prisma.employee.update({
+      where: { id },
+      data: { deletedAt },
+    });
   }
 }
