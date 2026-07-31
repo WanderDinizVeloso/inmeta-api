@@ -131,4 +131,35 @@ describe('EmployeesController (e2e)', () => {
       expect(response.body.meta.lastPage).toBe(2);
     });
   });
+
+  describe('/employees/:id (DELETE)', () => {
+    it('deve remover um colaborador logicamente (Soft Delete) e retornar HTTP 204', async () => {
+      const createResponse = await request(app.getHttpServer())
+        .post('/employees')
+        .send({ name: 'Para Deletar', email: 'delete@inmeta.com' });
+
+      const id = createResponse.body.id;
+
+      await request(app.getHttpServer()).delete(`/employees/${id}`).expect(204);
+
+      const listResponse = await request(app.getHttpServer())
+        .get('/employees')
+        .expect(200);
+
+      expect(listResponse.body.data).toHaveLength(0);
+      expect(listResponse.body.meta.total).toBe(0);
+    });
+
+    it('deve retornar HTTP 404 ao tentar deletar um ID inexistente', async () => {
+      const fakeUuid = '123e4567-e89b-12d3-a456-426614174000';
+
+      const response = await request(app.getHttpServer())
+        .delete(`/employees/${fakeUuid}`)
+        .expect(404);
+
+      expect(response.body.message).toEqual(
+        expect.arrayContaining(['Colaborador não encontrado ou já removido.']),
+      );
+    });
+  });
 });
