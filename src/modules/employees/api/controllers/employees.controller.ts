@@ -6,6 +6,9 @@ import {
   HttpStatus,
   Get,
   Query,
+  Delete,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateEmployeeUseCase } from '../../application/use-cases/create-employee.use-case';
@@ -15,6 +18,8 @@ import { ApiDocsCreateEmployee } from '../docs/create-employee.doc';
 import { ListEmployeesUseCase } from '../../application/use-cases/list-employees.use-case';
 import { ApiDocsListEmployees } from '../docs/list-employees.doc';
 import { PaginationQueryDto } from '../../../../shared/dtos/pagination-query.dto';
+import { ApiDocsSoftDeleteEmployee } from '../docs/delete-employee.doc';
+import { SoftDeleteEmployeeUseCase } from '../../application/use-cases/soft-delete-employee.use-case';
 
 @ApiTags('Colaboradores')
 @Controller('employees')
@@ -22,6 +27,7 @@ export class EmployeesController {
   constructor(
     private readonly createEmployeeUseCase: CreateEmployeeUseCase,
     private readonly listEmployeesUseCase: ListEmployeesUseCase,
+    private readonly softDeleteEmployeeUseCase: SoftDeleteEmployeeUseCase,
   ) {}
 
   @Post()
@@ -43,5 +49,12 @@ export class EmployeesController {
   @ApiDocsListEmployees()
   async findAll(@Query() query: PaginationQueryDto) {
     return this.listEmployeesUseCase.execute(query);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiDocsSoftDeleteEmployee()
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.softDeleteEmployeeUseCase.execute({ id });
   }
 }
