@@ -30,4 +30,29 @@ export class EmployeeRepository {
       },
     });
   }
+
+  async findAll({
+    skip,
+    take,
+  }: {
+    skip: number;
+    take: number;
+  }): Promise<{ items: Employee[]; total: number }> {
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.employee.findMany({
+        where: { deletedAt: null },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.employee.count({
+        where: { deletedAt: null },
+      }),
+    ]);
+
+    return {
+      items: data.map((row) => Employee.create(row)),
+      total,
+    };
+  }
 }
