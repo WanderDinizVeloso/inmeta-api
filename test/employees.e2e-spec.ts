@@ -91,4 +91,45 @@ describe('EmployeesController (e2e)', () => {
       );
     });
   });
+
+  describe('/employees (GET)', () => {
+    it('deve listar colaboradores com paginação padrão (page=1, limit=10)', async () => {
+      // Setup: Insere 2 colaboradores
+      await request(app.getHttpServer())
+        .post('/employees')
+        .send({ name: 'User 1', email: 'user1@test.com' });
+      await request(app.getHttpServer())
+        .post('/employees')
+        .send({ name: 'User 2', email: 'user2@test.com' });
+
+      const response = await request(app.getHttpServer())
+        .get('/employees')
+        .expect(200);
+
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.meta).toEqual({
+        total: 2,
+        page: 1,
+        limit: 10,
+        lastPage: 1,
+      });
+    });
+
+    it('deve respeitar os limites de paginação via query params', async () => {
+      await request(app.getHttpServer())
+        .post('/employees')
+        .send({ name: 'User 1', email: 'user1@test.com' });
+      await request(app.getHttpServer())
+        .post('/employees')
+        .send({ name: 'User 2', email: 'user2@test.com' });
+
+      const response = await request(app.getHttpServer())
+        .get('/employees?page=2&limit=1')
+        .expect(200);
+
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.meta.page).toBe(2);
+      expect(response.body.meta.lastPage).toBe(2);
+    });
+  });
 });
