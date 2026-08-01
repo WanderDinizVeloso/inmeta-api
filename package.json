@@ -1,6 +1,6 @@
 {
   "name": "inmeta-api",
-  "version": "1.0.0-develop.5",
+  "version": "1.0.0",
   "description": "Sistema robusto focado no **Ciclo de Vida da Obrigação Documental**. Mais do que um simples CRUD, o sistema garante a integridade de vinculações de documentos a colaboradores, gerencia o histórico de versionamento de envios e fornece estatísticas agregadas de _compliance_ em tempo real. Tudo isso construído sob rigorosas práticas de engenharia de software para suportar ambientes de alta concorrência.",
   "author": "Wander Veloso",
   "private": true,
