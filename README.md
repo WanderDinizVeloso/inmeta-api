@@ -5,6 +5,8 @@
 ![Prisma](https://img.shields.io/badge/Prisma-6+-blue)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue)
 
+🟢 **Live API / Swagger (Ambiente de Produção):** 👉 **[https://inmeta-api.onrender.com/docs](https://inmeta-api.onrender.com/docs)**
+
 ## 📌 Visão Geral
 
 A **Inmeta API** é um sistema robusto focado no **Ciclo de Vida da Obrigação Documental**. Mais do que um simples CRUD, o sistema garante a integridade de vinculações de documentos a colaboradores, gerencia o histórico de versionamento de envios e fornece estatísticas agregadas de _compliance_ em tempo real. Tudo isso construído sob rigorosas práticas de engenharia de software para suportar ambientes de alta concorrência.
@@ -98,6 +100,7 @@ Abaixo documentamos as escolhas técnicas e o porquê descartamos as alternativa
 - [x] **Fase 4:** Módulo de Documentos (Vinculação, Histórico, Optimistic Locking, Transações ACID).
 - [x] **Fase 5:** Módulo de Dashboard (CQRS, Agregações avançadas no ORM).
 - [x] **Fase 6:** Documentação e Swagger.
+- [x] **Fase 7:** CI/CD para produção.
 - [x] **Testes Automatizados:** Cobertura de Testes Unitários (Regras de Negócio) e E2E (Integração e Concorrência) em cada fase.
 
 ---
@@ -108,7 +111,6 @@ Visando entregar "um escopo menor bem executado a um escopo maior incompleto e f
 
 1.  **Logs Estruturados Avançados (Pino/Winston):** Adicionamos tratamento e logs nativos no `ExceptionFilter`, mas não adicionamos bibliotecas de terceiros para não inflar as dependências (Regra do Zero Utility Belts).
 2.  **Endpoint explícito de Health Check (`/health`):** Focamos o tempo nas lógicas de concorrência. Adicionaríamos facilmente usando o pacote `@nestjs/terminus` caso o escopo de infraestrutura o exigisse.
-3.  **CI/CD Automatizado:** A esteira de GitHub Actions e o Deploy na AWS foram priorizados para serem feitos pelo engenheiro via infraestrutura fora do escopo do repositório da API em si.
 
 ---
 
@@ -168,8 +170,10 @@ npm run start:dev
 
 ### 4. Documentação da API (Swagger)
 
-Com a aplicação rodando, acesse no seu navegador:
-👉 **[http://localhost:3001/api](http://localhost:3001/api)**
+A aplicação expõe uma documentação interativa (OpenAPI 3.0) permitindo testar todos os endpoints diretamente pelo navegador. Você pode acessá-la de duas formas:
+
+- 🟢 **Produção (Recomendado):** 👉 **[https://inmeta-api.onrender.com/docs](https://inmeta-api.onrender.com/docs)** (Sempre atualizado via CI/CD)
+- 💻 **Desenvolvimento Local:** 👉 **[http://localhost:3000/docs](http://localhost:3000/docs)** (Requer execução do passo 3)
 
 ### 5. Testes Automatizados
 
@@ -182,3 +186,34 @@ npm run test
 # Rodar testes de integração/E2E (Banco de Dados e Controllers)
 npm run test:e2e
 ```
+
+---
+
+## 🔄 CI/CD e Fluxo de Produção (GitOps)
+
+O projeto possui uma esteira automatizada de Integração e Implantação Contínua (CI/CD) integrada ao **Render.com** e validada localmente por ferramentas de qualidade de código.
+
+### O Ciclo de Vida do Deploy
+
+1. **Desenvolvimento Local e Shift-Left Testing:**
+   - O desenvolvedor implementa a funcionalidade seguindo os padrões de Commit Convencional (_Conventional Commits_).
+   - O **Husky** intercepta os comandos do Git localmente:
+     - No `commit-msg`, o **Commitlint** valida se a estrutura da mensagem está padronizada.
+     - No `pre-push`, a suíte completa de testes unitários e de integração (`npm run test` e `npm run test:e2e`) é executada. Caso qualquer teste falhe, o envio para o repositório remoto é bloqueado instantaneamente.
+
+2. **Aprovação de Pull Request para a `main` (O Gatilho de Produção):**
+   - Ao abrir e aprovar um PR (Pull Request) direcionado à branch `main`, o webhook do **Render.com** é disparado automaticamente.
+
+3. **Build e Migrações Automatizadas em Produção:**
+   - O Render executa o comando de build da aplicação:
+     ```bash
+     npm install && npm run prisma:generate && npm run build
+     ```
+   - Antes de colocar a nova versão da API no ar, o comando de _Start_ executa as migrações do banco de dados relacional de forma segura:
+     ```bash
+     npx prisma migrate deploy && npm run start:prod
+     ```
+   - **Zero Downtime:** Se a build ou as migrações sucederem, o tráfego é alternado para a nova versão. Caso ocorra qualquer falha, o deploy é abortado automaticamente, mantendo a versão anterior estável intacta.
+
+4. **Versionamento Semântico e Changelog Automático:**
+   - O **Semantic Release** gerencia o versionamento da aplicação de forma autônoma com base nos prefixos dos commits aprovados (`fix:`, `feat:`, `BREAKING CHANGE`), atualizando dinamicamente o arquivo `CHANGELOG.md` e gerando as tags de release correspondentes.
