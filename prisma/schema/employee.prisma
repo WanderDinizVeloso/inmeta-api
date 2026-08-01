@@ -7,5 +7,7 @@ model Employee {
   updatedAt DateTime  @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
+  requirements EmployeeDocumentRequirement[]
+
   @@map("employees")
 }

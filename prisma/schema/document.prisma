@@ -1,0 +1,30 @@
+model EmployeeDocumentRequirement {
+  id             String @id @db.Uuid
+  employeeId     String @map("employee_id") @db.Uuid
+  documentTypeId String @map("document_type_id") @db.Uuid
+
+  createdAt DateTime  @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  employee     Employee             @relation(fields: [employeeId], references: [id])
+  documentType DocumentType         @relation(fields: [documentTypeId], references: [id])
+  submissions  DocumentSubmission[]
+
+  @@unique([employeeId, documentTypeId])
+  @@map("employee_document_requirements")
+}
+
+model DocumentSubmission {
+  id            String  @id @db.Uuid
+  requirementId String  @map("requirement_id") @db.Uuid
+  logicalUrl    String  @map("logical_url") @db.VarChar(500)
+  version       Int
+  isActive      Boolean @map("is_active")
+
+  createdAt DateTime @map("created_at")
+
+  requirement EmployeeDocumentRequirement @relation(fields: [requirementId], references: [id])
+
+  @@unique([requirementId, version])
+  @@map("document_submissions")
+}
