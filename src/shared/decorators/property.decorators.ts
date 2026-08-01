@@ -1,6 +1,11 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiPropertyOptions,
+} from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsOptional } from 'class-validator';
 
 export function PropertyString(options: ApiPropertyOptions) {
   return applyDecorators(
@@ -25,5 +30,13 @@ export function PropertyUUID(options: ApiPropertyOptions) {
       message: `${options.description} deve ser um UUID v4 válido.`,
     }),
     IsNotEmpty({ message: `${options.description} é obrigatório.` }),
+  );
+}
+
+export function PropertyStringOptional(options: ApiPropertyOptions) {
+  return applyDecorators(
+    ApiPropertyOptional(options),
+    IsOptional(),
+    IsString({ message: `${options.description} deve ser um texto válido.` }),
   );
 }
