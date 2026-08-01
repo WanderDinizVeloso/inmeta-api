@@ -30,6 +30,8 @@ describe('DocumentTypesController (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.documentSubmission.deleteMany();
+    await prisma.employeeDocumentRequirement.deleteMany();
     await prisma.documentType.deleteMany();
   });
 
